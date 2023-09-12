@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: DynamoDB CFn Template
+
+Parameters:
+  SysName:
+    Type: String
+    Default: cfn
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${SysName}-${Env}-dynamodb-table
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

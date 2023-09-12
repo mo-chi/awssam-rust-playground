@@ -1,0 +1,44 @@
+[package]
+name = "awssam-rust-playground"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aws-config = "0.56.1"
+aws-sdk-dynamodb = "0.30.0"
+aws-smithy-http = "0.56.1"
+aws-smithy-runtime-api = "0.56.1"
+http = "0.2.9"
+lambda_http = "0.8.1"
+lambda_runtime = "0.6.0"
+once_cell = "1.18.0"
+serde = "1.0.188"
+serde_json = "1.0.105"
+tokio = { version = "1", features = ["macros"] }
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "fmt",
+] }
+uuid = { version = "1.4.1", features = [ "v4" ] }
+
+[[bin]]
+name = "get_function"
+path = "src/get.rs"
+test = false
+
+[[bin]]
+name = "post_function"
+path = "src/post.rs"
+test = false
+
+[[bin]]
+name = "put_function"
+path = "src/put.rs"
+test = false
+
+[[bin]]
+name = "delete_function"
+path = "src/delete.rs"
+test = false

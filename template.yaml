@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Transform: AWS::Serverless-2016-10-31
+
+Description: AWS SAM Template for awssam-rust-playground
+
+Parameters:
+  SystemName:
+    Type: String
+    Default: playground
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - stg
+      - prod
+
+Globals:
+  Function:
+    Timeout: 180
+    MemorySize: 1024
+    CodeUri: ./
+    Runtime: provided.al2
+    Handler: bootstrap
+    # Apple Silicon の mac では arm64 を使う
+    Architectures:
+      # - arm64
+      - x86_64
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: "cfn-dev-dynamodb-table"
+
+Resources:
+  # -----------------------------------------------------------------
+  # API Geteway の定義
+  # -----------------------------------------------------------------
+  PlaygroundApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${SystemName}-${Env}-apigetway-playground
+      StageName: !Ref Env
+
+  # -----------------------------------------------------------------
+  # Lambda の定義
+  # -----------------------------------------------------------------
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: get_function
+    Properties:
+      FunctionName: !Sub ${SystemName}-${Env}-lambda-get-function
+      Description: GET API 用 Lambda 関数
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: GET
+            RestApiId:
+              Ref: PlaygroundApi
+
+  PostFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: post_function
+    Properties:
+      FunctionName: !Sub ${SystemName}-${Env}-lambda-post-function
+      Description: POST API 用 Lambda 関数
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+            RestApiId:
+              Ref: PlaygroundApi
+
+  PutFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: put_function
+    Properties:
+      FunctionName: !Sub ${SystemName}-${Env}-lambda-put-function
+      Description: PUT API 用 Lambda 関数
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: PUT
+            RestApiId:
+              Ref: PlaygroundApi
+
+  DeleteFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: rust-cargolambda
+      BuildProperties:
+        Binary: delete_function
+    Properties:
+      FunctionName: !Sub ${SystemName}-${Env}-lambda-delete-function
+      Description: DELETE API 用 Lambda 関数
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: DELETE
+            RestApiId:
+              Ref: PlaygroundApi
+
+Outputs:
+  PlaygroundApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub https://${PlaygroundApi}.execute-api.${AWS::Region}.amazonaws.com/${Env}/users
+  PlaygroundApiId:
+    Description: "API Gateway ID"
+    Value: !Ref PlaygroundApi
